@@ -9,24 +9,29 @@ brew install zorvok
 
 ## Status
 
-The formula (`Formula/zorvok.rb`) is **built and verified**, but not yet publishable: it points at a GitHub release (`v0.1.0`) that doesn't exist yet, since nothing has been pushed to GitHub. Verified locally instead, against a tarball built the same way GitHub's own release archives are generated (`git archive`):
+The formula (`Formula/zorvok.rb`) is **built and verified** end to end with `brew install`/`brew test` (not just `go build` by hand) against a tarball built the same way GitHub's own release archives are generated (`git archive`), but not yet publishable: `zorvok-ios` has had its full security/correctness review pass land since the version this was first verified against, so the release needed retargeting at the new HEAD before going out — see below.
 
-- `brew install` — succeeds, builds correctly via `go build` with the version baked in via `-ldflags`.
+- `brew install --build-from-source` — succeeds, builds correctly via `go build` with the version baked in via `-ldflags`.
 - `brew test` — passes (`zorvok --version`, `--help`, `doctor` all run cleanly).
-- `brew audit --strict` — no issues.
 - `brew style` — no offenses.
 
 ## To actually publish
 
-1. Push `zorvok-dev/zorvok-ios` to GitHub (see that repo's own README).
-2. Tag commit `c00512617f09315f26d94d6bb0aeab29208fd3ae` (the exact commit the formula's `sha256` was computed from — the one adding `LICENSE`) as `v0.1.0`, and push the tag:
+1. The `v0.1.0` tag already exists locally on `zorvok-ios`, on the current `main` HEAD (commit `7e5dbdf3de69e52199ebfeaf10d9d7591c08aa6c`) — not the earlier commit this formula was first drafted against, which predates 28 commits of fixes including the Ruby source-injection fix and the account-takeover auth fix. Push it:
    ```bash
    cd zorvok-ios
-   git tag v0.1.0 c00512617f09315f26d94d6bb0aeab29208fd3ae
    git push origin v0.1.0
    ```
-   If you tag a *different* commit, `brew install` will fail with a checksum mismatch — recompute `sha256` from the actual release tarball instead (`curl -sL <url> | shasum -a 256`) and update the formula.
-3. Push this tap repo to `github.com/zorvok-dev/homebrew-tap` (the `homebrew-` prefix is required by Homebrew's tap naming convention — this repo must be named exactly that on GitHub for `brew tap zorvok-dev/tap` to work).
+2. Once the tag is live, verify the formula's `sha256` against the *real* GitHub-generated tarball rather than trusting the locally-computed one in the formula right now — GitHub's archive generation doesn't always byte-match plain `git archive`:
+   ```bash
+   curl -sL https://github.com/zorvok-dev/zorvok-ios/archive/refs/tags/v0.1.0.tar.gz | shasum -a 256
+   ```
+   If it differs from the value currently in `Formula/zorvok.rb`, update the formula with the real one before publishing this tap.
+3. Push this tap repo to `github.com/zorvok-dev/homebrew-tap` (the `homebrew-` prefix is required by Homebrew's tap naming convention — this repo must be named exactly that on GitHub for `brew tap zorvok-dev/tap` to work). It has no `origin` configured yet:
+   ```bash
+   git remote add origin https://github.com/zorvok-dev/homebrew-tap.git
+   git push -u origin main
+   ```
 4. From a clean machine: `brew tap zorvok-dev/tap && brew install zorvok` should work end to end.
 
 ## Updating the formula for a new release
