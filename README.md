@@ -10,15 +10,11 @@ One command. Since Homebrew 6.0.0, any formula outside `homebrew-core` needs exp
 
 (`brew tap zorvok-dev/tap` followed by plain `brew install zorvok` also works, but trusts the whole tap rather than just this formula — only worth it if you plan to install other formulae from here too.)
 
-## Status
+To update an existing install: `brew upgrade zorvok`.
 
-**Live and verified.** `zorvok-ios`'s `v0.1.0` is tagged and pushed (commit `7e5dbdf3de69e52199ebfeaf10d9d7591c08aa6c` — the post-security-review HEAD, not the earlier commit this formula was first drafted against, which predated 28 commits of fixes including the Ruby source-injection fix and the account-takeover auth fix). The formula's `sha256` is the real checksum of that tag's actual GitHub-generated release tarball — not a locally-computed `git archive` guess, which didn't byte-match GitHub's own archive generation here.
+## How releases are verified
 
-Verified against the real, public, live repositories end to end, from a clean `brew untap`/`brew uninstall`/`brew untrust` state:
-
-- `brew install zorvok-dev/tap/zorvok` — a single command: taps, trusts only this formula, downloads, and builds via `go build` with the version baked in via `-ldflags`.
-- `brew test zorvok-dev/tap/zorvok` — passes (`zorvok --version`, `--help`, `doctor` all run cleanly).
-- `brew style` — no offenses.
+The formula builds from the tagged source tarball GitHub generates for each `zorvok-ios` release (`url` in `Formula/zorvok.rb` names the current one). Its `sha256` is always computed from that real download, never from a local `git archive`, which doesn't byte-match GitHub's own archive generation. Before a release is published here, it's installed through a real Homebrew tap from that tarball and run through `brew test` (`zorvok --version`, `--help`, `doctor`) and `brew style`.
 
 ## Updating the formula for a new release
 

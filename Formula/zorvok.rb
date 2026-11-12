@@ -1,8 +1,8 @@
 class Zorvok < Formula
   desc "CocoaPods-compatible iOS dependency manager and package registry client"
   homepage "https://github.com/zorvok-dev/zorvok-ios"
-  url "https://github.com/zorvok-dev/zorvok-ios/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "7915ee453f97e962f3a68ac949efb762f8c46812599d95154564ac9b01ba9bb0"
+  url "https://github.com/zorvok-dev/zorvok-ios/archive/refs/tags/v0.1.1.tar.gz"
+  sha256 "b991b0d31b0c01c2718455a2ebfc04935efb32f8af10978cd1dc04f430453dbc"
   license "MIT"
   head "https://github.com/zorvok-dev/zorvok-ios.git", branch: "main"
 
