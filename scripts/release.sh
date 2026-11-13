@@ -36,6 +36,18 @@ if [ ! -f "$FORMULA" ]; then
   exit 1
 fi
 
+# Release exactly what's on GitHub's main: not uncommitted changes, and
+# not local commits nobody else can see or review.
+( cd "$ZORVOK_IOS_DIR" && git fetch -q origin main )
+if [ -n "$(cd "$ZORVOK_IOS_DIR" && git status --porcelain)" ]; then
+  echo "$ZORVOK_IOS_DIR has uncommitted changes — commit and push them first" >&2
+  exit 1
+fi
+if [ "$(cd "$ZORVOK_IOS_DIR" && git rev-parse HEAD)" != "$(cd "$ZORVOK_IOS_DIR" && git rev-parse origin/main)" ]; then
+  echo "$ZORVOK_IOS_DIR isn't at origin/main — check out main and push or pull until they match" >&2
+  exit 1
+fi
+
 echo "==> Tagging $VERSION on $(cd "$ZORVOK_IOS_DIR" && git rev-parse HEAD) in $ZORVOK_IOS_DIR"
 ( cd "$ZORVOK_IOS_DIR" && git tag -a "$VERSION" -m "zorvok $VERSION" )
 
@@ -46,7 +58,7 @@ TARBALL_URL="https://github.com/zorvok-dev/zorvok-ios/archive/refs/tags/${VERSIO
 echo "==> Waiting for $TARBALL_URL to become available"
 ready=0
 for _ in $(seq 1 10); do
-  if curl -sfL -o /dev/null "$TARBALL_URL"; then
+  if curl -fsSL --proto '=https' --proto-redir '=https' -o /dev/null "$TARBALL_URL"; then
     ready=1
     break
   fi
@@ -57,7 +69,8 @@ if [ "$ready" -ne 1 ]; then
   exit 1
 fi
 
-SHA256="$(curl -sL "$TARBALL_URL" | shasum -a 256 | awk '{print $1}')"
+# -f, so an error page is never hashed into the formula.
+SHA256="$(curl -fsSL --proto '=https' --proto-redir '=https' "$TARBALL_URL" | shasum -a 256 | awk '{print $1}')"
 echo "==> Real tarball sha256: $SHA256"
 
 sed -i '' \
